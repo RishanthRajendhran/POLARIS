@@ -1,0 +1,187 @@
+hydra:
+  searchpath:
+    - pkg://verl/trainer/config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+algorithm:
+  adv_estimator: grpo
+  norm_adv_by_std_in_grpo: true
+  use_kl_in_reward: false
+  gt_rollout_enable: true
+  gt_in_group: true
+  gt_in_ppo: true
+  gt_exclude_from_stats: true
+  gt_peak_weight: 0.4
+  gt_warmup_steps: 2
+  gt_decay_steps: 0
+  gt_override_best: false
+  bc_enable: false
+  gt_think_prefix: false
+  pos_gate:
+    enable: true
+    require_non_blank: true
+    max_self_rep_for_pos: 0.80
+    max_length_pen_for_pos: 0.80
+  length_scale:
+    enable: false
+
+data:
+  train_files: ${oc.env:POLARIS_SMOKE_TRAIN_FILE,${oc.env:POLARIS_ROOT,.}/data_schema/synthetic/smoke_train.parquet}
+  val_files: ${oc.env:POLARIS_SMOKE_VAL_FILE,${oc.env:POLARIS_ROOT,.}/data_schema/synthetic/smoke_val.parquet}
+  train_batch_size: 8
+  max_prompt_length: 256
+  max_response_length: 256
+  think_len_cap_frac: 64
+  shuffle: false
+  seed: 3479
+  filter_overlong_prompts: false
+  truncation: right
+  dataloader_num_workers: 0
+  persistent_workers: false
+  pin_memory: false
+  apply_chat_template_kwargs:
+    enable_thinking: true
+
+trainer:
+  critic_warmup: 0
+  logger: [console]
+  project_name: polaris
+  experiment_name: polaris_smoke_test
+  n_gpus_per_node: 4
+  nnodes: 1
+  save_freq: 1000
+  test_freq: 1000
+  val_before_train: false
+  resume_mode: disable
+  default_local_dir: ${oc.env:POLARIS_OUTPUT_DIR,outputs/polaris_smoke_test}
+  validation_data_dir: ${oc.env:POLARIS_OUTPUT_DIR,outputs/polaris_smoke_test}/rollouts/
+  max_actor_ckpt_to_keep: 2
+  total_epochs: 1
+  balance_batch: false
+  log_val_generations: 0
+  log_val_reward_distributions: false
+
+actor_rollout_ref:
+  model:
+    path: Qwen/Qwen3.5-9B
+    use_remove_padding: false
+    enable_gradient_checkpointing: true
+  actor:
+    optim:
+      lr: 1e-6
+      lr_warmup_steps_ratio: 0
+    ppo_mini_batch_size: 4
+    ppo_micro_batch_size_per_gpu: 1
+    use_kl_loss: false
+    kl_loss_coef: 0.001
+    kl_loss_type: kl
+    entropy_coeff: 0.0
+    clip_ratio: 0.20
+    clip_ratio_low: 0.20
+    clip_ratio_high: 0.28
+    grad_clip: 1.0
+    loss_agg_mode: token-mean
+    ppo_epochs: 1
+    fsdp_config:
+      param_offload: true
+      optimizer_offload: false
+  rollout:
+    calculate_log_probs: false
+    log_prob_micro_batch_size_per_gpu: 1
+    tensor_model_parallel_size: 1
+    name: vllm
+    gpu_memory_utilization: 0.30
+    enforce_eager: true
+    max_model_len: 512
+    checkpoint_engine:
+      update_weights_bucket_megabytes: 4096
+    n: 2
+    dtype: bfloat16
+    max_num_batched_tokens: 2048
+    max_num_seqs: 64
+    do_sample: true
+    temperature: 0.8
+    top_p: 0.95
+    top_k: 20
+    repetition_penalty: 1.05
+    val_kwargs:
+      do_sample: true
+      n: 1
+      temperature: 0.8
+      top_p: 0.95
+      top_k: 20
+      min_p: 0.0
+      presence_penalty: 0.0
+      frequency_penalty: 0.0
+      repetition_penalty: 1.05
+      min_tokens: 1
+  ref:
+    log_prob_micro_batch_size_per_gpu: 1
+    fsdp_config:
+      param_offload: false
+      optimizer_offload: false
+
+ray_init:
+  num_cpus: 4
+
+reward:
+  streaming: false
+
+reward_model:
+  enable: false
+  reward_manager: composite_batch
+  reward_kwargs:
+    debug_print:
+      enable: false
+      max_samples_per_step: 16
+      every_n_steps: 1
+      only_on_failures: false
+    reward_components:
+      enable_story_quality: false
+      enable_self_rep: true
+      enable_blank_len: true
+    reward_weights:
+      self_rep: 1.0
+      length_pen: 0.5
+      blank_pen: 1.0
+    composite_clip: 2.0
+    gt_override_best: false
+    rep_n_local: 4
+    rep_local_window: 64
+    rep_ngram_hinge: 0.08
+    rep_w_lines: 0.4
+    rep_w_ngram: 0.8
+    rep_cap: 1.5
+    min_visible_ratio: 0.10
+    min_words: 40
+    target_words: -1
+    len_tolerance: -1
+    len_tolerance_lower: 0.15
+    len_tolerance_lower_abs_min: 40
+    len_tolerance_lower_abs_max: 100
+    len_tolerance_upper: 0.25
+    len_tolerance_upper_abs_min: 80
+    len_tolerance_upper_abs_max: 160
+    think_reward_mode: story_mean
+    think_reward_scale: 1.0
+    think_len_cap: ${data.think_len_cap_frac}
+    think_len_penalty: 0.05
+    overlong_buffer_enable: false
+    overlong_max_response_length: 256
+  val_reward_kwargs:
+    reward_components:
+      enable_story_quality: false
+      enable_self_rep: true
+      enable_blank_len: true
+    reward_weights:
+      self_rep: 1.0
+      length_pen: 0.5
+      blank_pen: 1.0
+    overlong_buffer_enable: false
+
+custom_reward_function:
+  path: ${oc.env:POLARIS_ROOT,.}/reward/components/__init__.py
+  name: composite_reward_fn

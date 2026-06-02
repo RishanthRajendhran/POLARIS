@@ -1,0 +1,17 @@
+{
+  "task": "eq_bench_creative",
+  "task_config": {
+    "input_path": "/path/to/your/generations.jsonl",
+    "story_field": "story",
+    "prompt_field": "prompt",
+    "id_field": "id"
+  },
+  "engine": {
+    "provider": "openai",
+    "model": "gpt-5.4",
+    "sampling": {
+      "temperature": 0.2,
+      "seed": 42
+    }
+  }
+}

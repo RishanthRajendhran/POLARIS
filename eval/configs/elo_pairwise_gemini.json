@@ -1,0 +1,37 @@
+{
+  "task": "story_elo",
+  "task_config": {
+    "file_a": "/path/to/model_A.jsonl",
+    "file_b": "/path/to/model_B.jsonl",
+    "default_model_a_name": "polaris-9b",
+    "default_model_b_name": "baseline",
+    "story_field": "story",
+    "prompt_field": "prompt",
+    "pairing_key": "id",
+    "mode": "pairwise",
+    "dual_position": true,
+    "strip_thinking": true
+  },
+  "engine": {
+    "provider": "vertex",
+    "model": "gemini-3-flash-preview",
+    "sampling": {
+      "temperature": 0.2,
+      "top_p": 0.9,
+      "max_output_tokens": 65536,
+      "seed": 42
+    },
+    "provider_overrides": {
+      "vertex": {
+        "thinking_config": {
+          "thinkingLevel": "MEDIUM",
+          "includeThoughts": false
+        }
+      }
+    },
+    "provider_params": {
+      "vertex_mode": "online",
+      "vertex_consumption": "standard"
+    }
+  }
+}

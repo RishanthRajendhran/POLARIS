@@ -1,0 +1,24 @@
+# POLARIS conda environment (base interpreter only).
+#
+# This file creates just the Python 3.10 interpreter + pip. The full, exact
+# dependency set lives in `requirements-lock.txt` and is installed SEPARATELY
+# with `pip install --no-deps`, because the lock is a complete, already-resolved
+# closure that intentionally pins versions some upstreams under-declare. For
+# example, the working env runs the git build of `transformers` (5.3.0.dev0)
+# even though `vllm 0.17.1` declares `transformers<5`; this combination works at
+# runtime but a normal `pip` resolve rejects it. Installing the closure with
+# `--no-deps` reproduces the real env exactly and avoids the resolver.
+#
+# Do not add the pip stack here: a conda `pip:` section cannot pass `--no-deps`
+# (requirements files don't support that flag), so it would hit the same
+# resolver conflict. Use `scripts/setup_env.sh` (recommended) or the manual
+# steps in README.md instead.
+#
+# Requirements: Linux x86_64, an NVIDIA GPU (CUDA 12.x driver), and a CUDA 12.x
+# toolkit providing nvcc for the flash_attn compile (e.g. `module load cuda/12.8`).
+name: polaris
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10.20
+  - pip

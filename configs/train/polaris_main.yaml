@@ -1,0 +1,247 @@
+hydra:
+  searchpath:
+    - pkg://verl/trainer/config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+algorithm:
+  adv_estimator: grpo
+  norm_adv_by_std_in_grpo: true
+
+  use_kl_in_reward: false
+
+  # Ground-truth (GT) as pseudo-rollout in GRPO group
+  gt_rollout_enable: true
+  gt_in_group: true
+  gt_in_ppo: true
+  gt_exclude_from_stats: true
+  gt_peak_weight: 0.4
+  gt_warmup_steps: 15
+  gt_decay_steps: 0
+  gt_override_best: false
+
+  # Behavioral cloning — DISABLED
+  bc_enable: false
+
+  # GT think prefix — DISABLED
+  gt_think_prefix: false
+
+data:
+  # User-provided training and validation parquet files
+  train_files: ${oc.env:POLARIS_TRAIN_FILE,SET_POLARIS_TRAIN_FILE}
+  val_files: ${oc.env:POLARIS_VAL_FILE,SET_POLARIS_VAL_FILE}
+  train_batch_size: 8
+  max_prompt_length: 256
+  max_response_length: 8192
+  think_len_cap_frac: 3072
+  shuffle: true
+  seed: 3479
+  filter_overlong_prompts: true
+  truncation: right
+  dataloader_num_workers: 4
+  persistent_workers: true
+  pin_memory: true
+
+  apply_chat_template_kwargs:
+    enable_thinking: true
+
+trainer:
+  critic_warmup: 0
+  logger: [console, wandb]
+  project_name: polaris
+  experiment_name: polaris_main
+  n_gpus_per_node: 4
+  nnodes: 1
+  save_freq: 5
+  test_freq: 20
+  val_before_train: true
+  resume_mode: auto
+  default_local_dir: ${oc.env:POLARIS_OUTPUT_DIR,outputs/polaris_main}
+  validation_data_dir: ${oc.env:POLARIS_OUTPUT_DIR,outputs/polaris_main}/rollouts/
+  total_epochs: 1
+  log_val_generations: 100000
+
+actor_rollout_ref:
+  model:
+    path: Qwen/Qwen3.5-9B
+    use_remove_padding: false
+    enable_gradient_checkpointing: true
+  actor:
+    optim:
+      lr: 1e-6
+      lr_warmup_steps_ratio: 0
+    ppo_mini_batch_size: 8
+    ppo_micro_batch_size_per_gpu: 2
+    use_kl_loss: false
+    kl_loss_coef: 0.001
+    kl_loss_type: kl
+    entropy_coeff: 0.0
+    clip_ratio: 0.20
+    clip_ratio_low: 0.20
+    clip_ratio_high: 0.28
+    grad_clip: 1.0
+    loss_agg_mode: token-mean
+    ppo_epochs: 1
+    fsdp_config:
+      param_offload: true
+      optimizer_offload: false
+
+  rollout:
+    calculate_log_probs: false
+    log_prob_micro_batch_size_per_gpu: 1
+    tensor_model_parallel_size: 1
+    name: vllm
+    gpu_memory_utilization: 0.60
+    enforce_eager: true
+    max_model_len: 8448
+    checkpoint_engine:
+      update_weights_bucket_megabytes: 4096
+    n: 6                        # 5 policy + 1 GT per group
+    dtype: bfloat16
+    max_num_batched_tokens: 16384
+    do_sample: true
+    temperature: 1.0
+    top_p: 0.95
+    top_k: 20
+    repetition_penalty: 1.10
+    val_kwargs:
+      do_sample: true
+      n: 1
+      temperature: 0.8
+      top_p: 0.95
+      top_k: -1
+      min_p: 0.0
+      presence_penalty: 0.0
+      frequency_penalty: 0.0
+      repetition_penalty: 1.10
+      min_tokens: 1
+
+  ref:
+    log_prob_micro_batch_size_per_gpu: 1
+    fsdp_config:
+      param_offload: false
+      optimizer_offload: false
+
+ray_init:
+  num_cpus: 16
+
+reward:
+  streaming: false
+
+reward_model:
+  enable: false
+  reward_manager: composite_batch
+  reward_kwargs:
+    reward_components:
+      enable_story_quality: true
+      enable_self_rep: true
+      enable_blank_len: true
+
+    reward_weights:
+      story_quality: 1.0
+      self_rep: 1.5
+      length_pen: 0.8
+      blank_pen: 1.0
+
+    composite_clip: 2.0
+    gt_override_best: false
+
+    rep_n_local: 4
+    rep_local_window: 64
+    rep_ngram_hinge: 0.08
+    rep_w_lines: 0.4
+    rep_w_ngram: 0.8
+    rep_cap: 1.5
+
+    min_visible_ratio: 0.10
+    min_words: 150
+    target_words: -1
+    len_tolerance: -1
+    len_tolerance_lower: 0.15
+    len_tolerance_lower_abs_min: 350
+    len_tolerance_lower_abs_max: 1000
+    len_tolerance_upper: 0.25
+    len_tolerance_upper_abs_min: 600
+    len_tolerance_upper_abs_max: 1500
+
+    think_reward_mode: story_mean
+    think_reward_scale: 1.0
+    think_len_cap: ${data.think_len_cap_frac}
+    think_len_penalty: 0.05
+
+    overlong_buffer_enable: true
+    overlong_buffer_len: 512
+    overlong_penalty_factor: 1.0
+    overlong_max_response_length: 8192
+
+    # Story Quality judge
+    story_quality_provider: "vertex"
+    story_quality_force_structured_mode: ""
+
+    story_quality_model_name: "gemini-3-flash-preview"
+    story_quality_service_tier: flex
+    story_quality_thinking_config:
+      thinkingLevel: MEDIUM
+      includeThoughts: false
+
+    story_quality_max_retries: 3
+    story_quality_retry_backoff_s: 5.0
+
+    story_quality_async_enable: true
+    story_quality_concurrency: 4
+    story_quality_timeout_s: 10000.0
+    story_quality_max_output_tokens: 65536
+
+    story_quality_temperature: 0.2
+    story_quality_top_p: 0.9
+
+    # Story Quality schema: overall_score in [-159, +108]
+    story_quality_overall_min: -159
+    story_quality_overall_max: 108
+    story_quality_score_divisor: 100
+    story_quality_use_positive_total: false
+    story_quality_overall_override_enable: true
+
+    story_quality_system_message_path: ${oc.env:POLARIS_ROOT,.}/prompts/story_quality_seq.txt
+    story_quality_schema_path: ${oc.env:POLARIS_ROOT,.}/prompts/story_quality_seq.json
+    story_quality_user_template: |
+      STORY PROMPT:
+      {story_prompt}
+
+      STORY:
+      {story}
+
+    # Story Quality composite rules
+    story_quality_bonus_floor_enable: true   # bonus contribution = 0 if negative_total > positive_total/2
+    story_quality_penalty_cap_enable: true   # penalty contribution capped at 3 if positive_total > negative_total*1.5
+    story_quality_penalty_cap_value: 3
+
+    # Disqualification gates (DQ): floors overall_score for severely-broken outputs
+    # Default DISABLED for this run (Option C); flip dq_enable=true to activate.
+    # Other reward components (length_pen, self_rep, blank_pen) stay raw regardless.
+    story_quality_dq_enable: false
+    story_quality_dq_n2_threshold: 7        # N2 (coherence) ≥ 7 → DQ
+    story_quality_dq_n10_threshold: 8       # N10 (overwrought/nonsense) ≥ 8 → DQ
+    story_quality_dq_wc_min_frac: 0.40      # actual word count < 40% of target → DQ
+    story_quality_dq_exempt_gt: true        # GT (human story) rollouts skip the gate
+
+  val_reward_kwargs:
+    reward_components:
+      enable_story_quality: true
+      enable_self_rep: true
+      enable_blank_len: true
+    reward_weights:
+      story_quality: 1.0
+      self_rep: 0.8
+      length_pen: 0.2
+      blank_pen: 1.0
+    story_quality_service_tier: flex
+    story_quality_use_positive_total: false
+    story_quality_concurrency: 8
+    overlong_buffer_enable: false
+
+custom_reward_function:
+  path: ${oc.env:POLARIS_ROOT,.}/reward/components/__init__.py
+  name: composite_reward_fn

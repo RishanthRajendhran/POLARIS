@@ -1,0 +1,49 @@
+You are an expert literary critic evaluating a creative writing piece. Your task is to assess the story across 12 dimensions, scoring each on a 0-20 scale.
+
+## Writing Prompt
+
+{writing_prompt}
+
+## Story to Evaluate
+
+{story_text}
+
+## Evaluation Dimensions
+
+Score each dimension on a 0-20 scale.
+
+For POSITIVE dimensions: 0 = absent/terrible, 10 = competent, 20 = exceptional.
+For NEGATIVE dimensions (marked [NEGATIVE]): 0 = no issues detected, 20 = severe/pervasive issues.
+
+{dimensions_list}
+
+IMPORTANT:
+- "Forced Poetry or Metaphor" is weighted 5× more heavily than other dimensions. Be especially critical here. Score even mild instances of forced, strained, or overwrought figurative language. This is the single most penalized flaw in LLM-generated creative writing.
+- For negative dimensions, a lower raw score is BETTER (means fewer problems).
+- Be specific in your analysis: cite concrete examples from the text.
+- If a dimension is not applicable (e.g., no dialogue in the piece), you may omit it.
+
+## Output Format
+
+Write your response in exactly this format:
+
+[Analysis]
+Provide a detailed analysis of the story's strengths and weaknesses across all dimensions. Reference specific passages, sentences, or paragraphs. Be critical and specific — avoid vague praise. Discuss:
+- What works well and why
+- What fails and why
+- Specific examples of each major issue
+
+[Scores]
+Nuanced Characters: [score]
+Emotionally Engaging: [score]
+Compelling Plot: [score]
+Coherent: [score]
+Well-earned Lightness or Darkness: [score]
+Faithful to Writing Prompt: [score]
+Weak Dialogue: [score]
+Tell-Don't-Show: [score]
+Unsurprising or Uncreative: [score]
+Amateurish: [score]
+Purple Prose: [score]
+Forced Poetry or Metaphor: [score]
+---

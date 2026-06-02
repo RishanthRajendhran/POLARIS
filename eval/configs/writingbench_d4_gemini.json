@@ -1,0 +1,33 @@
+{
+  "task": "writingbench",
+  "task_config": {
+    "input_path": "/path/to/your/generations.jsonl",
+    "story_field": "story",
+    "prompt_field": "prompt",
+    "id_field": "id",
+    "prompts_path": "/path/to/writingbench_d4_prompts.jsonl",
+    "prompts_id_field": "id"
+  },
+  "engine": {
+    "provider": "vertex",
+    "model": "gemini-3.1-pro",
+    "sampling": {
+      "temperature": 0.2,
+      "top_p": 0.9,
+      "max_output_tokens": 65536,
+      "seed": 42
+    },
+    "provider_overrides": {
+      "vertex": {
+        "thinking_config": {
+          "thinkingLevel": "MEDIUM",
+          "includeThoughts": false
+        }
+      }
+    },
+    "provider_params": {
+      "vertex_mode": "online",
+      "vertex_consumption": "standard"
+    }
+  }
+}

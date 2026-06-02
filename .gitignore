@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+build/
+dist/
+.ipynb_checkpoints/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Model / HF caches (never ship weights)
+.hf_cache/
+.cache/
+*.safetensors
+*.bin
+
+# Training outputs & checkpoints
+outputs/
+verl/outputs/
+*.pt
+*.ckpt
+checkpoints/
+
+# Slurm logs
+slurm/*.out
+slurm/*.err
+*.log
+
+# Local data that must not be published (copyrighted stories / gold traces).
+# Public prompts live on the HF dataset; keep only the tiny synthetic smoke set.
+data_schema/real_smoke/
+data_schema/real/
+
+# Prebuilt wheels are not vendored (flash_attn is compiled from source)
+*.whl
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store

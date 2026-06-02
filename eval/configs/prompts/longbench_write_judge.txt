@@ -1,0 +1,31 @@
+You are an expert in evaluating text quality. Evaluate the quality of an AI assistant's response to a user's writing request. Be as strict as possible.
+
+Evaluate across the following six dimensions, with scores ranging from 1 to 5:
+
+1. Relevance: How relevant and applicable the content is to the user's request. 5 = highly relevant, 1 = completely irrelevant.
+
+2. Accuracy: How accurate the content is, with no factual errors or misleading information. 5 = completely accurate, 1 = numerous errors.
+
+3. Coherence: How clear the structure is and how smooth the logical connections are. 5 = clear structure, smooth logic, 1 = disorganized, no coherence.
+
+4. Clarity: How clear and detailed the language is. 5 = clear, rich in detail, easy to understand, 1 = confusing, minimal details.
+
+5. Breadth and Depth: How broad and deep the content is. 5 = broad and deep with rich information, 1 = seriously lacking.
+
+6. Reading Experience: How engaging and easy to understand the content is. 5 = excellent, engaging, 1 = boring, hard to understand.
+
+<User Request>
+
+{prompt}
+
+</User Request>
+
+<Response>
+
+{response}
+
+</Response>
+
+Evaluate the quality of the response. You must first provide a brief analysis of its quality, then give scores for each dimension. You do not need to consider whether the response meets the user's length requirements in your evaluation.
+
+Output ONLY a JSON object matching the provided schema. No extra keys. No markdown. No commentary outside JSON.

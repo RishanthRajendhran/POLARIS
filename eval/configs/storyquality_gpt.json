@@ -1,0 +1,20 @@
+{
+  "task": "story_quality",
+  "task_config": {
+    "input_path": "/path/to/your/generations.jsonl",
+    "default_model_name": "polaris-9b"
+  },
+  "task_params": {
+    "override_overall_from_totals": true,
+    "json_schema_path": "configs/schemas/story_quality_seq.json",
+    "system_message_path": "configs/prompts/story_quality_seq.txt"
+  },
+  "engine": {
+    "provider": "openai",
+    "model": "gpt-5.4",
+    "sampling": {
+      "temperature": 0.2,
+      "seed": 42
+    }
+  }
+}

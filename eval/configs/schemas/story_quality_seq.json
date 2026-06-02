@@ -1,0 +1,181 @@
+{
+  "name": "story_quality_seq",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "positive_prompt_fulfillment_premise_integration_justification": { "type": "string" },
+      "positive_prompt_fulfillment_premise_integration_score": { "type": "integer", "minimum": 0, "maximum": 15 },
+
+      "positive_narrative_arc_pacing_justification": { "type": "string" },
+      "positive_narrative_arc_pacing_score": { "type": "integer", "minimum": 0, "maximum": 20 },
+
+      "positive_character_depth_agency_justification": { "type": "string" },
+      "positive_character_depth_agency_score": { "type": "integer", "minimum": 0, "maximum": 15 },
+
+      "positive_voice_stylistic_distinctiveness_justification": { "type": "string" },
+      "positive_voice_stylistic_distinctiveness_score": { "type": "integer", "minimum": 0, "maximum": 15 },
+
+      "positive_concrete_world_scene_realization_justification": { "type": "string" },
+      "positive_concrete_world_scene_realization_score": { "type": "integer", "minimum": 0, "maximum": 20 },
+
+      "positive_thematic_emotional_richness_subtlety_justification": { "type": "string" },
+      "positive_thematic_emotional_richness_subtlety_score": { "type": "integer", "minimum": 0, "maximum": 15 },
+
+      "negative_prompt_violation_constraint_breach_justification": { "type": "string" },
+      "negative_prompt_violation_constraint_breach_score": { "type": "integer", "minimum": 0, "maximum": 15 },
+
+      "negative_coherence_continuity_internal_consistency_pov_confusion_justification": { "type": "string" },
+      "negative_coherence_continuity_internal_consistency_pov_confusion_score": { "type": "integer", "minimum": 0, "maximum": 20 },
+
+      "negative_generic_templated_language_structure_justification": { "type": "string" },
+      "negative_generic_templated_language_structure_score": { "type": "integer", "minimum": 0, "maximum": 15 },
+
+      "negative_over_summary_abstraction_thin_grounding_justification": { "type": "string" },
+      "negative_over_summary_abstraction_thin_grounding_score": { "type": "integer", "minimum": 0, "maximum": 15 },
+
+      "negative_over_explanation_redundancy_moralizing_paraphrase_loops_justification": { "type": "string" },
+      "negative_over_explanation_redundancy_moralizing_paraphrase_loops_score": { "type": "integer", "minimum": 0, "maximum": 15 },
+
+      "negative_drift_bloat_structural_breakdown_justification": { "type": "string" },
+      "negative_drift_bloat_structural_breakdown_score": { "type": "integer", "minimum": 0, "maximum": 20 },
+
+      "negative_dialogue_problems_stilted_expository_same_voice_justification": { "type": "string" },
+      "negative_dialogue_problems_stilted_expository_same_voice_score": { "type": "integer", "minimum": 0, "maximum": 15 },
+
+      "negative_mechanical_formatting_errors_justification": { "type": "string" },
+      "negative_mechanical_formatting_errors_score": { "type": "integer", "minimum": 0, "maximum": 8 },
+
+      "negative_predictability_cliche_justification": {
+        "type": "string",
+        "description": "1-3 sentences citing specific stock beats, predictable arcs, or recycled imagery. Quote evidence."
+      },
+      "negative_predictability_cliche_score": {
+        "type": "integer", "minimum": 0, "maximum": 8,
+        "description": "Penalty for stock plot structures, predictable beats, formulaic arcs, and recycled imagery/metaphors."
+      },
+
+      "negative_overwrought_nonsensical_language_justification": {
+        "type": "string",
+        "description": "1-3 sentences citing specific instances of purple prose, forced metaphors, ornate-for-its-own-sake language, or sentence/clause-level nonsense. Quote evidence."
+      },
+      "negative_overwrought_nonsensical_language_score": {
+        "type": "integer", "minimum": 0, "maximum": 20,
+        "description": "Penalty for overwrought language and sentence/clause-level nonsense."
+      },
+
+      "bonus_target_excellence": {
+        "type": "string",
+        "description": "1-2 sentences naming a specific effect tied to a specific moment. Vague or general praise (e.g. 'beautiful prose') must score 0."
+      },
+      "bonus_evidence": {
+        "type": "array",
+        "items": { "type": "string" },
+        "maxItems": 2,
+        "description": "Exact quotes from the story (each <=12 words). Required when bonus_score >= 2."
+      },
+      "bonus_almost_captured_by": {
+        "type": "string",
+        "description": "Either 'P1'..'P6' (the P-dim that ALMOST captures this) or 'none'."
+      },
+      "bonus_why_not_captured": {
+        "type": "string",
+        "description": "1 sentence explaining why the named P-dim's anchors fall short of this excellence."
+      },
+      "bonus_score": {
+        "type": "integer", "minimum": 0, "maximum": 8,
+        "description": "Open-ended catch-all upward adjustment. Score 0 unless ALL structural requirements are met (specific moment, evidence, P-dim differentiation). Capped to 0 by composite logic if negative_total > positive_total / 2."
+      },
+
+      "penalty_target_deficiency": {
+        "type": "string",
+        "description": "1-2 sentences naming a specific failure tied to a specific moment. Vague 'felt off' justifications must score 0."
+      },
+      "penalty_evidence": {
+        "type": "array",
+        "items": { "type": "string" },
+        "maxItems": 2,
+        "description": "Exact quotes from the story (each <=12 words). Required when penalty_score >= 2."
+      },
+      "penalty_almost_captured_by": {
+        "type": "string",
+        "description": "Either 'N1'..'N10' (the N-dim that ALMOST captures this) or 'none'."
+      },
+      "penalty_why_not_captured": {
+        "type": "string",
+        "description": "1 sentence explaining why the named N-dim's anchors fall short of this failure."
+      },
+      "penalty_score": {
+        "type": "integer", "minimum": 0, "maximum": 8,
+        "description": "Open-ended catch-all downward adjustment. Score 0 unless ALL structural requirements are met. Capped to 3 by composite logic if positive_total > negative_total * 1.5."
+      },
+
+      "positive_total": { "type": "integer", "minimum": 0, "maximum": 100 },
+      "negative_total": { "type": "integer", "minimum": 0, "maximum": 151 },
+      "bonus_total": { "type": "integer", "minimum": 0, "maximum": 8 },
+      "penalty_total": { "type": "integer", "minimum": 0, "maximum": 8 },
+
+      "overall_justification": { "type": "string" },
+      "overall_score": {
+        "type": "integer", "minimum": -159, "maximum": 108,
+        "description": "Computed as positive_total - negative_total + bonus_total - penalty_total. Not clamped; can be negative."
+      },
+      "overall_label": {
+        "type": "string",
+        "enum": ["very_poor", "poor", "fair", "good", "excellent"]
+      }
+    },
+    "required": [
+      "positive_prompt_fulfillment_premise_integration_justification",
+      "positive_prompt_fulfillment_premise_integration_score",
+      "positive_narrative_arc_pacing_justification",
+      "positive_narrative_arc_pacing_score",
+      "positive_character_depth_agency_justification",
+      "positive_character_depth_agency_score",
+      "positive_voice_stylistic_distinctiveness_justification",
+      "positive_voice_stylistic_distinctiveness_score",
+      "positive_concrete_world_scene_realization_justification",
+      "positive_concrete_world_scene_realization_score",
+      "positive_thematic_emotional_richness_subtlety_justification",
+      "positive_thematic_emotional_richness_subtlety_score",
+      "negative_prompt_violation_constraint_breach_justification",
+      "negative_prompt_violation_constraint_breach_score",
+      "negative_coherence_continuity_internal_consistency_pov_confusion_justification",
+      "negative_coherence_continuity_internal_consistency_pov_confusion_score",
+      "negative_generic_templated_language_structure_justification",
+      "negative_generic_templated_language_structure_score",
+      "negative_over_summary_abstraction_thin_grounding_justification",
+      "negative_over_summary_abstraction_thin_grounding_score",
+      "negative_over_explanation_redundancy_moralizing_paraphrase_loops_justification",
+      "negative_over_explanation_redundancy_moralizing_paraphrase_loops_score",
+      "negative_drift_bloat_structural_breakdown_justification",
+      "negative_drift_bloat_structural_breakdown_score",
+      "negative_dialogue_problems_stilted_expository_same_voice_justification",
+      "negative_dialogue_problems_stilted_expository_same_voice_score",
+      "negative_mechanical_formatting_errors_justification",
+      "negative_mechanical_formatting_errors_score",
+      "negative_predictability_cliche_justification",
+      "negative_predictability_cliche_score",
+      "negative_overwrought_nonsensical_language_justification",
+      "negative_overwrought_nonsensical_language_score",
+      "bonus_target_excellence",
+      "bonus_evidence",
+      "bonus_almost_captured_by",
+      "bonus_why_not_captured",
+      "bonus_score",
+      "penalty_target_deficiency",
+      "penalty_evidence",
+      "penalty_almost_captured_by",
+      "penalty_why_not_captured",
+      "penalty_score",
+      "positive_total",
+      "negative_total",
+      "bonus_total",
+      "penalty_total",
+      "overall_justification",
+      "overall_score",
+      "overall_label"
+    ],
+    "additionalProperties": false
+  }
+}
